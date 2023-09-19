@@ -1,0 +1,73 @@
+﻿@model List<Review>
+
+@inject IViewLocalizer Localizer    
+
+<style>
+
+    .review-container {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+    }
+
+    .title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .content {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .review-container .star-rating {
+        display: flex;
+        justify-content: end;
+    }
+
+    .date {
+        display: flex;
+        justify-content: end;
+    }
+
+</style>
+
+@if (Model.Any())
+{
+    <h3>@Localizer["Reviews"]</h3>
+    <div id="reviews">
+        @foreach (var review in Model)
+        {
+            <div class="review-container mt-2">
+                <div class="row">
+                    <div class="col title">
+                        <strong>@review.ApplicationUser.FirstName @review.ApplicationUser.LastName</strong>
+                    </div>
+                    <div class="col date">
+                        <strong>@review.DatePosted.ToLongDateString()</strong>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col star-rating">
+                        @for (int i = 5; i >= 1; i--)
+                        {
+                            <input class="star" id="review-@review.Id-star-@i" type="radio" name="Review-@review.Id-Rating" value="@i" @((i == review.Rating) ? "disabled checked" : "disabled") />
+                            <label for="review-@review.Id-star-@i" title="@i stars">&#9733;</label>
+                        }
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col content">
+                        <p>@review.Content</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <h3>@Localizer["There are currently no reviews"]</h3>
+}

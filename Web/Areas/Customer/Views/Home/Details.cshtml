@@ -1,0 +1,267 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@model ReviewsShoppingCartViewModel
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IViewLocalizer Localizer
+
+<style>
+    .star-rating {
+        direction: rtl;
+        display: inline-block;
+    }
+
+        .star-rating input[type=radio] {
+            display: none;
+        }
+
+        .star-rating label {
+            color: #bbb;
+            font-size: 35px;
+            padding: 0;
+            cursor: pointer;
+            -webkit-transition: all .3s ease-in-out;
+            transition: all .3s ease-in-out;
+        }
+
+        #addReviewForm .star-rating label:hover,
+        #addReviewForm .star-rating label:hover ~ label,
+        .star-rating input[type=radio]:checked ~ label {
+            color: #f2b600;
+        }
+</style>
+
+<div class="row">
+    <form method="post">
+        <input hidden asp-for="@Model.ShoppingCart.ProductId">
+        <div class="card shadow border-0 mt-4">
+            <div class="card-header bg-primary bg-gradient text-light py-4">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <h3 class="text-white text-uppercase">@Model.ShoppingCart.Product?.Title</h3>
+                        <p class="text-white-50 fw-semibold mb-0">by @Model.ShoppingCart.Product?.Author</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="py-3">
+                    <div class="row">
+                        <div class="col-6 col-md-2 offset-lg-1 pb-1">
+                            <a asp-action="Index" class="btn btn-outline-primary bg-gradient mb-5 fw-semibold btn-sm text-uppercase">
+                                <small>@Localizer["Back to home"]</small>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-lg-3 offset-lg-1 text-center mb-3">
+                            <img src="@Model.ShoppingCart.Product?.ImageUrl" class="rounded w-100" />
+                        </div>
+                        <div class="col-12 col-lg-6 offset-lg-1">
+
+                            <div class="col-12 col-md-6 pb-4">
+                                <span class="badge text-bg-warning">@Model.ShoppingCart.Product?.Category?.Name</span>
+                            </div>
+                            <div class="row ps-2">
+                                <h6 class="text-dark text-opacity-50 ">ISBN : @Model.ShoppingCart.Product?.ISBN</h6>
+                            </div>
+                            <div class="row ps-2">
+                                <h6 class="text-dark text-opacity-50  pb-2">
+                                    @Localizer["List Price"]:
+                                    <span class="text-decoration-line-through">
+                                        @Model.ShoppingCart.Product?.ListPrice?.ToString("N2") ₴
+                                    </span>
+                                </h6>
+                            </div>
+                            <div class="row text-center ps-2">
+                                <div class="p-1 col-3 col-lg-2 bg-white border-bottom">
+                                    <div class="text-dark text-opacity-50 fw-semibold">@Localizer["Quantity"]</div>
+                                </div>
+                                <div class="p-1 col-3 col-lg-2 bg-white border-bottom">
+                                    <div class="text-dark text-opacity-50 fw-semibold">1-50</div>
+                                </div>
+                                <div class="p-1 col-3 col-lg-2 bg-white border-bottom">
+                                    <div class="text-dark text-opacity-50 fw-semibold">51-100</div>
+                                </div>
+                                <div class="p-1 col-3 col-lg-2 bg-white border-bottom">
+                                    <div class="text-dark text-opacity-50 fw-semibold">100+</div>
+                                </div>
+                            </div>
+                            <div class="row text-center ps-2">
+                                <div class="p-1 col-3 col-lg-2 bg-white text-warning fw-bold">
+                                    <div>@Localizer["Price"]</div>
+                                </div>
+                                <div class="p-1 col-3 col-lg-2 bg-white text-warning fw-bold">
+                                    <div>@Model.ShoppingCart.Product?.Price?.ToString("N2") ₴</div>
+                                </div>
+                                <div class="p-1 col-3 col-lg-2 bg-white text-warning fw-bold">
+                                    <div>@Model.ShoppingCart.Product?.Price50?.ToString("N2") ₴</div>
+                                </div>
+                                <div class="p-1 col-3 col-lg-2 bg-white text-warning fw-bold">
+                                    <div>@Model.ShoppingCart.Product?.Price100?.ToString("N2") ₴</div>
+                                </div>
+                            </div>
+                            <div class="row pl-2 my-3">
+                                <p class="text-secondary lh-sm">@Html.Raw(Model.ShoppingCart.Product?.Description)</p>
+                            </div>
+                            <div class="row pl-2 mb-3">
+                                <div class="col-md-5">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-primary text-white border-0 fw-semibold"
+                                                  id="inputGroup-sizing-default">
+                                                @Localizer["Count"]
+                                            </span>
+                                        </div>
+                                        <input asp-for="@Model.ShoppingCart.Count" type="number" value="1" min="1" max="100" class="form-control text-end" placeholder="Count" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 col-md-8 pb-1 d-flex">
+                                    <button type="submit" class="btn btn-primary bg-gradient  w-100 py-2 text-uppercase fw-semibold">
+                                        @Localizer["Add to Cart"]
+                                    </button>
+                                    <div class="btn-group" role="group" aria-label="Basic example">
+                                        <button type="button" class="btn btn-light form-control comparison" data="@Model.ShoppingCart.ProductId">
+                                            <div class="position-relative d-inline-block">
+                                                <i class="fas fa-balance-scale fa-lg"></i>
+                                                <span class="badge badge-check rounded-pill bg-success position-absolute translate-middle" id="badge-check-@Model.ShoppingCart.ProductId" style='visibility:@(Model.ShoppingCart.IsCompared? "visible" : "hidden");'>
+                                                    <i class="fas fa-check fa-xs"></i>
+                                                </span>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="btn btn-light heart-btn" data="@Model.ShoppingCart.ProductId" @(SignInManager.IsSignedIn(User) ? "" : "disabled")>
+                                            <i id="fa-heart-@Model.ShoppingCart.ProductId" class='@(Model.ShoppingCart.IsWished? "fas": "far" )  fa-heart'></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row">
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReviewModal">
+        @Localizer["Add review"]
+    </button>
+</div>
+<div class="row">
+    <div id="reviewsList">
+        @Html.Partial("_ReviewsList", Model.Reviews)
+    </div>
+
+    <div class="modal fade" id="addReviewModal" tabindex="-1" role="dialog" aria-labelledby="addReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addReviewModalLabel">
+                        @Localizer["Add review"]
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <form id="addReviewForm" method="post">
+                            <input type="hidden" name="ProductId" value="@Model.ShoppingCart.ProductId" />
+                            <input type="hidden" name="ApplicationUserId" value="@UserManager.GetUserId(User)" />
+                            <div class="form-group">
+                                <label>
+                                    @Localizer["Your email"]
+                                </label>
+                                <input type="text" name="ReviewerEmail" class="form-control" required value="@UserManager.GetUserName(User)" disabled />
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    @Localizer["Content"]:
+                                </label>
+                                <textarea name="Content" class="form-control" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12">
+                                    <div class="star-rating">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input class="star" id="star-@i" type="radio" name="Rating" value="@i" required />
+                                            <label for="star-@i" title="@i stars">&#9733;</label>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <h4>@Localizer["You must be an authorized user to leave a review"]</h4>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        @Localizer["Cancel"]
+                    </button>
+                    <button type="button" class="btn btn-primary" id="submitReview" @(SignInManager.IsSignedIn(User)? "" :"disabled")>
+                        @Localizer["Send"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#submitReview').on('click', function () {
+                var review = $('#addReviewForm').serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '/Customer/Home/AddReview',
+                    data: { reviewStr: review },
+                    success: function (result) {
+                        $('#reviewsList').html(result);
+                        $('#addReviewModal').modal('hide');
+                    }
+                });
+            });
+            $('.comparison').on("click", function (e) {
+                var productId = $(this).attr('data');
+                var visibility = $(`#badge-check-${productId}`).css('visibility');
+                if (visibility == 'visible')
+                    window.location.replace('/Customer/Home/Comparison');
+                $.ajax({
+                    url: '/Customer/Home/AddToComparison',
+                    type: 'POST',
+                    data: { productId: productId },
+                    success: function (data) {
+                        console.log('add to comparison')
+                        $('#comparison').html(data)
+                        $(`#badge-check-${productId}`).css('visibility', 'visible');
+                    }
+                });
+            });
+            $('.heart-btn').on("click", function (e) {
+                var productId = $(this).attr('data');
+                $.ajax({
+                    url: '/Customer/Home/ToggleProductToWishList',
+                    type: 'POST',
+                    data: { productId: productId },
+                    success: function (data) {
+                        console.log('add to wishlist')
+                        $('#wishList').html(data)
+                        if ($(`#fa-heart-${productId}`).hasClass("fas"))
+                            $(`#fa-heart-${productId}`).removeClass("fas").addClass("far");
+                        else
+                            $(`#fa-heart-${productId}`).removeClass("far").addClass("fas");
+                    }
+                });
+            });
+        });
+    </script>
+}

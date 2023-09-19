@@ -1,0 +1,23 @@
+﻿@model IEnumerable<Product>
+
+@inject IViewLocalizer Localizer
+
+@if (Model.Where(p => p.IsHistored == true).Count() > 0)
+{
+    <div class="row d-flex">
+        <div class="col-11">
+            <h1>@Localizer["The last viewed products"]</h1>
+        </div>
+        <div class="col-1">
+            <button id="btnClearHistory" type="button" class="btn-close" aria-label="Close"></button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="card-group row pb-3">
+            @foreach (var product in Model.Where(p => p.IsHistored == true))
+            {
+                @await Component.InvokeAsync("ProductCard", new {productId = product.Id})
+            }
+        </div>
+    </div>
+}

@@ -1,0 +1,54 @@
+﻿@model PagedListViewModel
+
+@inject IViewLocalizer Localizer
+
+<div id="booksContainer">
+    @if (Model.Products.Count() > 0)
+    {        
+        @await Html.PartialAsync("_BooksPartialView", Model)
+    }
+    else
+    {
+        <h1>@Localizer["Wish list is empty"]</h1>
+        <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-outline-primary text-uppercase mb-5 btn-sm">
+            <small>@Localizer["Continue Shopping"]</small>
+        </a>
+    }
+</div>
+
+@section Scripts{
+    <script>
+        $('body').on("click", '.comparison', function (e) {
+            var productId = $(this).attr('data');
+            var visibility = $(`#badge-check-${productId}`).css('visibility');
+            if (visibility == 'visible')
+                window.location.replace('/Customer/Home/Comparison');
+            $.ajax({
+                url: '/Customer/Home/AddToComparison',
+                type: 'POST',
+                data: { productId: productId },
+                success: function (data) {
+                    console.log('add to comparison')
+                    $('#comparison').html(data)
+                    $(`#badge-check-${productId}`).css('visibility', 'visible');
+                }
+            });
+        });
+        $('body').on("click", '.heart-btn', function (e) {
+            var productId = $(this).attr('data');
+            $.ajax({
+                url: '/Customer/Home/ToggleProductToWishList',
+                type: 'POST',
+                data: { productId: productId },
+                success: function (data) {
+                    console.log('add to wishlist')
+                    $('#wishList').html(data)
+                    $(`#card-${productId}`).remove();
+                    if ($('.card-group .card').length === 0) {
+                        window.location.href = '/';
+                    }
+                }
+            });
+        });
+    </script>
+}

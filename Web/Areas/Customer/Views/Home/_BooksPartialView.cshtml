@@ -1,0 +1,52 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization;
+@using X.PagedList;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@model PagedListViewModel
+
+@inject IViewLocalizer Localizer
+
+<style>
+    .book-control {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        top: 4.6rem;
+        right: 1.6rem;
+        z-index: 2;
+    }
+
+        .book-control > * {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            border-radius: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+    .btn-group .btn-light {
+        width: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+<div class="card-group row pb-3">
+    @foreach (var product in Model.Products)
+    {
+        @await Component.InvokeAsync("ProductCard", new {productId = product.Id})
+    }
+</div>
+
+<div class="text-center">
+    @Localizer["Page"] @(Model.Products.PageCount < Model.Products.PageNumber ? 0 : Model.Products.PageNumber) @Localizer["of"] @Model.Products.PageCount
+    <div id="pagination-container">
+        @Html.PagedListPager(Model.Products, page => Url.Action("GetPagedListItems", new { page, categoryId = Model.CategoryId, searchedValue = Model.SearchedValue, inWishList = Model.InWishList, sortOrder = Model.SortOrder }),
+        PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(
+        new PagedListRenderOptions { LiElementClasses = new string[] { "page-item" }, PageClasses = new string[] { "page-link" },
+        UlElementClasses = new[] { "pagination","justify-content-center", "mt-3" },
+        MaximumPageNumbersToDisplay = 5, DisplayLinkToFirstPage = PagedListDisplayMode.Always, DisplayLinkToLastPage = PagedListDisplayMode.Always, DisplayLinkToNextPage = PagedListDisplayMode.Always, DisplayLinkToPreviousPage = PagedListDisplayMode.Always} ,
+        new AjaxOptions { HttpMethod = "GET", UpdateTargetId = "booksContainer"  }))
+    </div>
+</div>

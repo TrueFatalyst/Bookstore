@@ -1,0 +1,65 @@
+﻿@using Models.ViewModels;
+@model Product
+
+@inject IViewLocalizer Localizer
+
+<div class="col-lg-3 col-sm-6" id="card-@Model.Id">
+    <div class="row p-2">
+        <div class="col-12 p-1">
+            <div class="card border-0 p-3 shadow border-top border-5 rounded  d-flex flex-column" data-title="@Model.Title" data-author="@Model.Author">
+                <div class="position-relative">
+                    @if (Model.IsPromotional)
+                    {
+                        <span class="badge rounded-pill bg-success position-absolute" style="top: 10px; right: 10px;">@Localizer["Promo"]</span>
+                    }
+                    <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? @"\images\product\image-not-found.jpg": Model.ImageUrl)" class="card-img-top rou" alt="product" height=@(string.IsNullOrEmpty(Model.ImageUrl) ? "256": "" )>
+                </div>
+                
+                <div class="card-body pb-2">
+                    <div>
+                        <div class="header">
+                            <h5 class="card-title text-dark opacity-75 text-center">@Model.Title</h5>
+                        </div>
+                        <p class="card-title text-warning text-center">
+                            @Localizer["by"] <span class="fw-bold">
+                                @Model.Author
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-dark text-opacity-75 text-center mb-0">
+                            @Localizer["List Price"]: <span class="text-decoration-line-through text-danger">
+                                @Model.ListPrice?.ToString("N2") ₴
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-dark text-opacity-75 text-center">
+                            @Localizer["As low as"]: <span class="text-success">
+                                @Model.Price100?.ToString("N2") ₴
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-center p-0">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button class="btn btn-light form-control comparison" data="@Model.Id">
+                            <div class="position-relative d-inline-block">
+                                <i class="fas fa-balance-scale fa-lg"></i>
+                                <span class="badge-check-@Model.Id badge badge-check rounded-pill bg-success position-absolute translate-middle" style='visibility:@(Model.IsCompared? "visible" : "hidden");'>
+                                    <i class="fas fa-check fa-xs"></i>
+                                </span>
+                            </div>
+                        </button>
+                        <a asp-action="Details" asp-route-productId="@Model.Id" class="btn btn-primary bg-gradient border-0 form-control">
+                            @Localizer["Details"]
+                        </a>
+                        <button class="btn btn-light heart-btn" data="@Model.Id">
+                            <i class='fa-heart-@Model.Id @(Model.IsWished? "fas": "far" )  fa-heart'></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

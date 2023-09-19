@@ -1,0 +1,16 @@
+﻿@model int
+
+@inject IViewLocalizer Localizer
+
+<div class="container row pt-4">
+    <div class="col-12 text-center">
+        <h1 class="text-primary text-center">
+            @Localizer["Order Placed Successfully"]
+        </h1>
+        @Localizer["Your Order Number is"] : @Model<br /><br />
+    </div>
+    <div class="col-12 text-center" style="color: maroon">
+        <br />
+        @Localizer["Your Order has been placed successfully"]<br />
+    </div>
+</div>

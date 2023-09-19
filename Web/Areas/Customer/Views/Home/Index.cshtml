@@ -1,0 +1,205 @@
+﻿@model ProductsCategoriesViewModel
+
+@inject IViewLocalizer Localizer
+
+@{
+    var sortOrder = ViewBag.SortOrder as string;
+}
+
+<div class="container text-center my-3">
+    <h2 class="font-weight-light">@Localizer["PromoProducts"]</h2>
+    <div class="row mx-auto my-auto justify-content-center">
+        <div id="recipeCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner" role="listbox">
+                @foreach (var promo in Model.Products.Where(c => c.IsPromotional == true))
+                {
+                    <div class="carousel-item @((promo == Model.Products.FirstOrDefault(p => p.IsPromotional)) ? "active" : "")">
+                        @await Component.InvokeAsync("ProductCard", new {productId = promo.Id})
+                    </div>
+                }
+            </div>
+            <a class="carousel-control-prev bg-transparent w-aut" href="#recipeCarousel" role="button" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            </a>
+            <a class="carousel-control-next bg-transparent w-aut" href="#recipeCarousel" role="button" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container m-1">
+    <div class="row">
+        <div class="col-2">
+            <div class="row">
+                <div class="col-12">
+                    <p>
+                        <button id="categoryLinkAll" class="btn btn-primary category-link" data="@null">@Localizer["All"]</button>
+                    </p>
+                </div>
+                @foreach (var category in Model.Categories)
+                {
+                    <div class="col-12">
+                        <p>
+                            <button id="categoryLink@(category.Name)" class="btn btn-outline-primary category-link" data="@category.Id">@category.Name</button>
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-10">
+            <div class="row">
+                <div class="col">
+                    <div class="input-group mb-3">
+                        <input type="text" id="searchInput" class="form-control" placeholder="@Localizer["Search by Title or Author"]" aria-label="Search by Title or Author">
+                        <button class="btn btn-outline-primary" type="button" id="searchBtn">@Localizer["Search"]</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div>
+                        <label for="sortOrder">@Localizer["Sort by"]: </label>
+                        <select id="sortOrder" name="sortOrder">
+                            <option value="3" selected>@Localizer["By name"]</option>
+                            <option value="0">@Localizer["By promo"]</option>
+                            <option value="1">@Localizer["By price"]</option>
+                            <option value="2">@Localizer["By price (desc)"]</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="booksContainer">
+                @await Html.PartialAsync("_BooksPartialView", Model.PagedListViewModel)
+            </div>
+        </div>
+    </div>
+</div>
+<div id="history-container" class="container">
+    @await Html.PartialAsync("_HistoryPartialView", Model.Products)
+</div>
+
+@section Scripts{
+    <script>
+        $("#searchBtn").click(function () {
+            var searchValue = $("#searchInput").val();
+
+            $.ajax({
+                url: "/Customer/Home/GetSearchedProduct",
+                type: "GET",
+                data: { searchValue: searchValue },
+                success: function (data) {
+                    $("#booksContainer").html(data);
+                    $('.category-link').removeClass('btn-primary').addClass('btn-outline-primary');
+                    $('#categoryLinkAll').addClass('btn-primary').removeClass('btn-outline-primary');
+                },
+                error: function () {
+                    alert("Error occurred while fetching books.");
+                }
+            });
+        });
+
+        $('body').on('click', '.category-link', function (e) {
+            e.preventDefault();
+            var categoryId = $(this).attr('data');
+            var selectedId = $(this).attr('id');
+            $.ajax({
+                url: 'Customer/Home/GetProductByCategoryId',
+                type: 'GET',
+                data: { categoryId: categoryId },
+                dataType: 'html',
+                success: function (data) {
+                    $("#booksContainer").html(data);
+                    $('.category-link').removeClass('btn-primary').addClass('btn-outline-primary');
+                    $('#' + selectedId).removeClass('btn-outline-primary').addClass('btn-primary');
+                    $('#sortOrder').val("3");
+                }
+            });
+        });
+        $('body').on("click", '.comparison', function (e) {
+            var productId = $(this).attr('data');
+            var visibility = $(`.badge-check-${productId}`).css('visibility');
+            if (visibility == 'visible')
+                window.location.replace('/Customer/Home/Comparison');
+            $.ajax({
+                url: 'Customer/Home/AddToComparison',
+                type: 'POST',
+                data: { productId: productId },
+                success: function (data) {
+                    console.log('add to comparison')
+                    $('#comparison').html(data)
+                    $(`.badge-check-${productId}`).css('visibility', 'visible');
+                }
+            });
+        });
+        $('body').on("click", '.heart-btn', function (e) {
+            var productId = $(this).attr('data');
+            $.ajax({
+                url: 'Customer/Home/ToggleProductToWishList',
+                type: 'POST',
+                data: { productId: productId },
+                success: function (data) {
+                    console.log('add\remove to wishlist')
+                    $('#wishList').html(data)
+                    if ($(`.fa-heart-${productId}`).hasClass("fas"))
+                        $(`.fa-heart-${productId}`).removeClass("fas").addClass("far");
+                    else
+                        $(`.fa-heart-${productId}`).removeClass("far").addClass("fas");
+                }
+            });
+        });
+        $('body').on("click", '#btnClearHistory', function (e) {
+            $.ajax({
+                url: 'Customer/Home/ClearHistory',
+                type: 'POST',
+                success: function (data) {
+                    console.log('clear history')
+                    $('#history-container').html(data);
+                }
+            });
+        });
+        $('body').on("click", '.pagination a', function (e) {
+            event.preventDefault();
+
+            var url = $(this).attr('href');
+
+            $.get(url, function (response) {
+                $('#booksContainer').html(response);
+            });
+        });
+        $('body').on("change", '#sortOrder', function (e) {
+
+            var sortedId = $('#sortOrder').find(":selected").val();
+            var searchValue = $("#searchInput").val();
+            var categoryId = $('.category-link.btn-primary').attr('data');
+
+            $.ajax({
+                url: 'Customer/Home/GetSortedPagedList',
+                type: 'GET',
+                data: { sortedId: sortedId, searchValue: searchValue, categoryId: categoryId },
+                dataType: 'html',
+                success: function (data) {
+                    console.log('change sorting')
+                    $('#booksContainer').html(data);
+                }
+            });
+        });
+
+
+        let items = document.querySelectorAll('.carousel .carousel-item')
+
+        items.forEach((el) => {
+            const minPerSlide = 4
+            let next = el.nextElementSibling
+            for (var i = 1; i < minPerSlide; i++) {
+                if (!next) {
+                    // wrap carousel by using first child
+                    next = items[0]
+                }
+                let cloneChild = next.cloneNode(true)
+                el.appendChild(cloneChild.children[0])
+                next = next.nextElementSibling
+            }
+        })
+    </script>
+}
